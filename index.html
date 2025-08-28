@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Simulateur d'impact — CGTR (offline)</title>
+<style>
+  :root{--red:#e30613; --bg:#f6f6f6; --text:#111; --muted:#666; --border:#ddd;}
+  *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  header{background:var(--red);color:#fff;}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand img{width:48px;height:48px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .grid{display:grid;gap:12px} .g2{grid-template-columns:repeat(2,minmax(0,1fr));} .g3{grid-template-columns:repeat(3,minmax(0,1fr));}
+  label{display:block;font-size:13px;color:#333;margin-bottom:6px} input,select{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff}
+  .muted{color:var(--muted);font-size:12px;margin-top:6px}
+  .btn{display:inline-block;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#fff;color:#111;cursor:pointer}
+  .btn.primary{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+  .stepper{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+  .chip{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer;font-size:14px}
+  .chip.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+  .row{display:flex;gap:12px;align-items:center;justify-content:space-between}
+  .right{text-align:right}
+  hr{border:0;border-top:1px solid var(--border);margin:12px 0}
+  .hidden{display:none}
+  .stat .label{color:#333} .stat .value{font-weight:700} .danger{color:var(--red)}
+  @media (max-width:720px){.g2,.g3{grid-template-columns:1fr;} .row{flex-direction:column;align-items:flex-start} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap row">
+    <div class="brand">
+      <img src="data:image/jpeg;base64,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" alt="Logo CGTR"/>
+      <div><div style="font-weight:800">CGTR — La Réunion</div><small>Simulateur d’impact (offline)</small></div>
+    </div>
+    <div><button class="btn" onclick="window.print()">Imprimer / PDF</button></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="card" style="text-align:center;margin:12px 0">
+    <h2 style="margin:0 0 6px">Mesurez l’impact sur votre situation</h2>
+    <div class="muted">Renseignez vos informations et obtenez un <b>bilan chiffré</b>. Résultats indicatifs.</div>
+  </div>
+
+  <div class="stepper" id="steps"></div>
+
+  <section id="step-0" class="card">
+    <h3>1) Votre situation</h3>
+    <div class="grid g2">
+      <div>
+        <label>Statut</label>
+        <select id="status">
+          <option value="salarie_prive">Salarié·e (secteur privé)</option>
+          <option value="fonctionnaire">Fonctionnaire / Agent·e public·que</option>
+          <option value="retraite">Retraité·e</option>
+          <option value="sans_emploi">Sans emploi / Demandeur·se d’emploi</option>
+          <option value="etudiant">Étudiant·e / Apprenti·e</option>
+        </select>
+      </div>
+      <div>
+        <label>Revenu mensuel brut (€)</label>
+        <input id="grossMonthly" type="number" min="0" step="1" value="1800"/>
+        <div class="muted">Si retraité·e : pension mensuelle brute. Si sans emploi : laissez 0 €.</div>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:12px">
+      <div style="grid-column:span 2">
+        <label><input id="applyHolidays" type="checkbox" checked/> Prise en compte des <b>2 jours fériés travaillés</b></label>
+        <div class="grid g3">
+          <div><label>Jours fériés (nb)</label><input id="holidaysCount" type="number" min="0" value="2"/></div>
+          <div><label>Heures par jour</label><input id="hoursPerDay" type="number" min="0" step="0.1" value="8"/></div>
+          <div><label>Majoration (%)</label><input id="majorationPct" type="number" min="0" max="100" step="5" value="0"/></div>
+        </div>
+        <div class="muted">Perte ≈ valeur du jour − prime de majoration éventuelle.</div>
+      </div>
+      <div class="card" style="background:#fff4f4;border-color:#f3c9cd">
+        <div class="muted">Estimation jours fériés</div>
+        <div class="row"><div>Perte</div><div class="value danger" id="holidaysLossView">-0 € / an</div></div>
+        <div class="muted">Horaire estimé : <span id="hourlyView">0 €/h</span></div>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card" style="background:#f8f8f8">
+        <label><input id="applyFreezeWages" type="checkbox"/> Appliquer <b>gel des rémunérations</b></label><br/>
+        <label><input id="applyDeindexPensions" type="checkbox"/> Appliquer <b>désindexation des pensions</b></label>
+      </div>
+      <div>
+        <label>Inflation (%)</label>
+        <input id="inflationPct" type="number" min="0" step="0.1" value="1.4"/>
+        <div class="muted">Hypothèse pour estimer la perte de pouvoir d’achat.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="step-1" class="card hidden">
+    <h3>2) Vos revenus</h3>
+    <div class="grid g2">
+      <div>
+        <label>Revenu mensuel brut (€)</label>
+        <input id="grossMonthly2" type="number" min="0" step="1" value="1800"/>
+        <div class="muted">Salaire / pension / allocation principale selon votre statut.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="step-2" class="card hidden">
+    <h3>3) Vos aides mensuelles</h3>
+    <div class="grid g3">
+      <div><label>Allocations familiales (€)</label><input id="a_allocFam" type="number" min="0" value="0"/></div>
+      <div><label>APL (€)</label><input id="a_apl" type="number" min="0" value="0"/></div>
+      <div><label>RSA (€)</label><input id="a_rsa" type="number" min="0" value="0"/></div>
+      <div><label>AAH (€)</label><input id="a_aah" type="number" min="0" value="0"/></div>
+      <div><label>Bourse (€)</label><input id="a_bourse" type="number" min="0" value="0"/></div>
+    </div>
+    <div class="card" style="margin-top:12px;background:#f8f8f8">
+      <label><input id="applyFreezeBenefits" type="checkbox" checked/> Appliquer <b>gel des prestations</b> (perte ≈ inflation × total annuel des aides)</label>
+    </div>
+  </section>
+
+  <section id="step-3" class="card hidden">
+    <h3>4) Santé (en nombres)</h3>
+    <div class="muted">Indiquez le <b>nombre annuel</b> d’actes. PF appliquée aux <b>consultations</b>. Option pour <b>examens</b> ci-dessous.</div>
+    <div class="grid g2" style="margin-top:12px">
+      <div><label>Consultations de médecine générale (nb)</label><input id="nb_mg" type="number" min="0" value="0"/></div>
+      <div><label>Consultations de spécialistes (nb)</label><input id="nb_spec" type="number" min="0" value="0"/></div>
+      <div><label>Examens radio et/ou biologie (nb)</label><input id="nb_exam" type="number" min="0" value="0"/></div>
+      <div><label>Interventions paramédicales (nb)</label><input id="nb_paramed" type="number" min="0" value="0"/></div>
+      <div><label>Transports sanitaires (nb)</label><input id="nb_trans" type="number" min="0" value="0"/></div>
+      <div><label>Boîtes de médicaments (nb)</label><input id="nb_box" type="number" min="0" value="0"/></div>
+    </div>
+
+    <div class="card" style="margin-top:12px;background:#f8f8f8">
+      <label><input id="togglePFExam" type="checkbox" checked/> Compter la <b>participation forfaitaire</b> aussi sur les <b>examens</b> (+1 € / examen)</label>
+      <div class="row" style="margin-top:8px"><div>Surcoût Santé</div><div class="value danger" id="healthLossView">-0 € / an</div></div>
+      <div class="muted">PF consultations : 2→4 € (+2/consultation). PF examens (option) : 1→2 € (+1/examen). Franchises : 1→2 / 1→2 / 4→8 €.</div>
+    </div>
+  </section>
+
+  <section id="step-4" class="card hidden">
+    <h3>5) Bilan</h3>
+    <div class="grid">
+      <div class="row stat"><div class="label">Jours fériés travaillés</div><div id="sf" class="value danger">-0 €</div></div>
+      <div class="row stat"><div class="label">Gel des rémunérations</div><div id="gw" class="value danger">-0 €</div></div>
+      <div class="row stat"><div class="label">Désindexation des pensions</div><div id="gp" class="value danger">-0 €</div></div>
+      <div class="row stat"><div class="label">Gel des prestations</div><div id="gb" class="value danger">-0 €</div></div>
+      <div class="row stat"><div class="label">Santé : participations & franchises</div><div id="hs" class="value danger">-0 €</div></div>
+      <hr/>
+      <div class="row" style="font-size:20px;font-weight:800"><div>Perte estimée totale (an)</div><div id="tot" class="danger">-0 €</div></div>
+    </div>
+    <div class="muted" style="margin-top:8px">Méthode simplifiée, résultats indicatifs.</div>
+  </section>
+
+  <div class="row" style="margin:14px 0">
+    <div><button class="btn" id="prevBtn">← Retour</button></div>
+    <div class="right"><button class="btn primary" id="nextBtn">Étape suivante →</button></div>
+  </div>
+
+  <div class="card" style="background:#fffbe6;border-color:#ffe08a">
+    <b>Pourquoi l’impact peut être plus fort à La Réunion ?</b><br/>
+    Insularité = <i>coût de la vie plus élevé</i> (prix, transport, énergie), <i>revenus médians plus faibles</i> et <i>recours plus important aux prestations</i> : toute désindexation, gel ou hausse du reste à charge pèsent davantage sur le pouvoir d’achat.
+  </div>
+
+  <div class="muted" style="text-align:center;margin:10px 0">© CGTR — Prototype de simulateur d’impact. Données non collectées. Résultats sans valeur légale.</div>
+</main>
+
+<script>
+(function(){
+  const qs = id => document.getElementById(id);
+  const qv = id => parseFloat(qs(id).value || "0") || 0;
+  const qc = id => qs(id).checked;
+
+  const steps = ["Situation","Revenus","Aides","Santé","Bilan"];
+  let step = 0;
+  const stepsEl = qs("steps");
+  function renderStepper(){ stepsEl.innerHTML = steps.map((t,i)=>`<button class="chip ${i===step?"active":""}" data-i="${i}">${i+1}. ${t}</button>`).join(""); stepsEl.querySelectorAll("button").forEach(b=>b.onclick=()=>{step=parseInt(b.dataset.i);showStep();}); }
+
+  function showStep(){ for(let i=0;i<5;i++){ const el=qs("step-"+i); if(!el) continue; el.classList.toggle("hidden", i!==step); } qs("prevBtn").disabled = (step===0); qs("nextBtn").textContent = step<4 ? "Étape suivante →" : "↺ Revenir au début"; renderStepper(); compute(); }
+
+  function money(n){ return (n<0? "-":"") + new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.abs(n||0)); }
+
+  function compute(){ 
+    qs("grossMonthly2").value = qv("grossMonthly");
+
+    const status = qs("status").value;
+    const grossMonthly = qv("grossMonthly");
+    const hourly = (grossMonthly||0)/151.67;
+    qs("hourlyView").textContent = new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(hourly||0) + " / h";
+
+    // Jours fériés
+    let holidaysLoss = 0;
+    if(qc("applyHolidays") && (status==="salarie_prive" || status==="fonctionnaire")){ 
+      const base = qv("holidaysCount") * qv("hoursPerDay") * hourly;
+      holidaysLoss = base * (1 - (qv("majorationPct")/100));
+    }
+    qs("holidaysLossView").textContent = money(-holidaysLoss) + " / an";
+
+    // Inflation effects
+    const inflation = (qv("inflationPct")/100);
+    const annualGross = grossMonthly * 12;
+    const wagesLoss = qs("applyFreezeWages").checked ? (annualGross * inflation) : 0;
+    const pensionsLoss = qs("applyDeindexPensions").checked ? (annualGross * inflation) : 0;
+
+    // Prestations
+    const benefitsMonthly = qv("a_allocFam")+qv("a_apl")+qv("a_rsa")+qv("a_aah")+qv("a_bourse");
+    const benefitsLoss = qs("applyFreezeBenefits").checked ? (benefitsMonthly*12*inflation) : 0;
+
+    // Santé
+    const nb_mg    = qv("nb_mg");
+    const nb_spec  = qv("nb_spec");
+    const nb_exam  = qv("nb_exam");
+    const nb_para  = qv("nb_paramed");
+    const nb_trans = qv("nb_trans");
+    const nb_box   = qv("nb_box");
+
+    // PF consultations (2→4): +2 par consultation
+    const pf_count_consult = nb_mg + nb_spec;
+    const pf_base_consult  = Math.min(pf_count_consult, 25) * 2;
+    const pf_prop_consult  = Math.min(pf_count_consult, 50) * 4;
+    const pf_consult_delta = Math.min(pf_prop_consult, 100) - Math.min(pf_base_consult, 50);
+    const pf_consult = Math.max(0, pf_consult_delta);
+
+    // PF examens (option) (1→2): +1 par examen
+    let pf_exam = 0;
+    if(qc("togglePFExam")){
+      const pf_base_exam = Math.min(nb_exam, 25) * 1;
+      const pf_prop_exam = Math.min(nb_exam, 50) * 2;
+      const pf_exam_delta = Math.min(pf_prop_exam, 100) - Math.min(pf_base_exam, 50);
+      pf_exam = Math.max(0, pf_exam_delta);
+    }
+
+    // Franchises (médicaments/paramédical/transports)
+    const fr_base_raw = nb_box*1 + nb_para*1 + nb_trans*4;
+    const fr_prop_raw = nb_box*2 + nb_para*2 + nb_trans*8;
+    const fr_base = Math.min(fr_base_raw, 50);
+    const fr_prop = Math.min(fr_prop_raw, 100);
+    const fr_delta = Math.max(0, fr_prop - fr_base);
+
+    const healthLoss = pf_consult + pf_exam + fr_delta;
+
+    const total = holidaysLoss + wagesLoss + pensionsLoss + benefitsLoss + healthLoss;
+
+    qs("healthLossView").textContent = money(-healthLoss) + " / an";
+    qs("sf").textContent  = money(-holidaysLoss);
+    qs("gw").textContent  = money(-wagesLoss);
+    qs("gp").textContent  = money(-pensionsLoss);
+    qs("gb").textContent  = money(-benefitsLoss);
+    qs("hs").textContent  = money(-healthLoss);
+    qs("tot").textContent = money(-total);
+  }
+
+  document.querySelectorAll("input,select").forEach(el=>{ el.addEventListener("input", compute); el.addEventListener("change", compute); });
+  qs("grossMonthly2").addEventListener("input", ()=>{ qs("grossMonthly").value = qs("grossMonthly2").value; compute(); });
+
+  qs("nextBtn").onclick = ()=>{ step = (step<4)? step+1 : 0; showStep(); };
+  qs("prevBtn").onclick = ()=>{ step = Math.max(0, step-1); showStep(); };
+
+  renderStepper();
+  showStep();
+})();
+</script>
+</body>
+</html>
